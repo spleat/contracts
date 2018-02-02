@@ -36,6 +36,11 @@ contract Spleat {
     
     mapping (uint256 => Order) public orders;
     
+    function orderById(uint256 orderId) public view returns (uint256[], address[], bool) {
+        var o = orders[orderId];
+        return (o.items, o.buyers, o.ordered);
+    }
+    
     event OrderOpened(uint256 indexed orderId);
     
     function openOrder(Restaurant restaurant, string deliveryAddress, string phone) public returns (uint256) {
