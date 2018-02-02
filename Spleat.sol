@@ -29,19 +29,23 @@ contract Spleat {
         uint256[] items;
         address[] buyers;
         uint256 payed;
+        bool ordered;
         uint256 restaurantOrderId;
     }
     
     mapping (uint256 => Order) public orders;
     
+    event OrderOpened(uint256 indexed orderId);
+    
     function openOrder(Restaurant restaurant, string deliveryAddress, string phone) public returns (uint256) {
-        var id = uint256(block.blockhash(block.number - 1)) ^ uint256(keccak256(restaurant, deliveryAddress, phone));
-        orders[id] = Order(msg.sender, restaurant, deliveryAddress, phone, new uint256[](0), new address[](0), 0, 0);
-        return id;
+        var orderId = uint256(block.blockhash(block.number - 1)) ^ uint256(keccak256(restaurant, deliveryAddress, phone));
+        orders[orderId] = Order(msg.sender, restaurant, deliveryAddress, phone, new uint256[](0), new address[](0), 0, false, 0);
+        OrderOpened(orderId);
+        return orderId;
     }
     
-    function addItem(uint256 orderId, uint256 id) public payable checkPayment(orderId, id) {
-        var o = orders[id];
+    function addItem(uint256 orderId, uint256 id) public payable checkPayment(orderId, id) notOrdered(orderId) {
+        var o = orders[orderId];
         o.items.length++;
         o.items[o.items.length - 1] = id;
         o.buyers.length++;
@@ -54,7 +58,7 @@ contract Spleat {
         _;
     }
     
-    function removeItem(uint256 orderId, uint256 id) public onlyBuyer(orderId, id) {
+    function removeItem(uint256 orderId, uint256 id) public onlyBuyer(orderId, id) notOrdered(orderId) {
         
     }
     
@@ -63,19 +67,25 @@ contract Spleat {
         _;
     }
     
-    function makeOrder(uint256 id) public onlyOwner(id) {
-        var o = orders[id];
+    function makeOrder(uint256 orderId) public onlyOwner(orderId) notOrdered(orderId) {
+        var o = orders[orderId];
         var restaurantOrderId = o.restaurant.order.value(o.payed)(o.deliveryAddress, o.phone, o.items);
         o.restaurantOrderId = restaurantOrderId;
+        o.ordered = true;
     }
     
-    modifier onlyOwner(uint256 id) {
-        require(msg.sender == orders[id].owner);
+    modifier onlyOwner(uint256 orderId) {
+        require(msg.sender == orders[orderId].owner);
         _;
     }
     
-    function restaurantOrderStatus(uint256 id) public view returns (Restaurant.Status) {
-        var o = orders[id];
+    modifier notOrdered(uint256 orderId) {
+        require(!orders[orderId].ordered);
+        _;
+    }
+    
+    function restaurantOrderStatus(uint256 orderId) public view returns (Restaurant.Status) {
+        var o = orders[orderId];
         return o.restaurant.orderStatus(o.restaurantOrderId);
     }
 }
