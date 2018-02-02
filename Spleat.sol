@@ -36,11 +36,6 @@ contract Spleat {
     
     mapping (uint256 => Order) public orders;
     
-    function orderById(uint256 orderId) public view returns (uint256[], address[], bool) {
-        var o = orders[orderId];
-        return (o.items, o.buyers, o.ordered);
-    }
-    
     event OrderOpened(uint256 indexed orderId);
     
     function openOrder(Restaurant restaurant, string deliveryAddress, string phone) public returns (uint256) {
@@ -67,31 +62,31 @@ contract Spleat {
     }
     
     function removeItem(uint256 orderId, uint256 id) public onlyBuyer(orderId, id) notOrdered(orderId) {
-        var o = orders[orderId];
-        for (uint256 i = 0; i < o.items.length; i++) {
-            if (o.items[i] == id && o.buyers[i] == msg.sender) {
-                msg.sender.transfer(o.itemPayment[i]);
-                if (i != o.items.length - 1) {
-                    o.items[i] = o.items[o.items.length - 1];
-                    o.buyers[i] = o.buyers[o.buyers.length - 1];
-                }
-                o.items.length--;
-                o.buyers.length--;
-                break;
-            }
-        }
+        // var o = orders[orderId];
+        // for (uint256 i = 0; i < o.items.length; i++) {
+        //     if (o.items[i] == id && o.buyers[i] == msg.sender) {
+        //         msg.sender.transfer(o.itemPayment[i]);
+        //         if (i != o.items.length - 1) {
+        //             o.items[i] = o.items[o.items.length - 1];
+        //             o.buyers[i] = o.buyers[o.buyers.length - 1];
+        //         }
+        //         o.items.length--;
+        //         o.buyers.length--;
+        //         break;
+        //     }
+        // }
     }
     
     modifier onlyBuyer(uint256 orderId, uint256 id) {
-        var o = orders[orderId];
-        var everythingGood = false;
-        for (uint256 i = 0; i < o.items.length; i++) {
-            if (o.items[i] == id && o.buyers[i] == msg.sender) {
-                everythingGood = true;
-                break;
-            }
-        }
-        require(everythingGood);
+        // var o = orders[orderId];
+        // var everythingGood = false;
+        // for (uint256 i = 0; i < o.items.length; i++) {
+        //     if (o.items[i] == id && o.buyers[i] == msg.sender) {
+        //         everythingGood = true;
+        //         break;
+        //     }
+        // }
+        // require(everythingGood);
         _;
     }
     
