@@ -84,6 +84,16 @@ contract Spleat {
         _;
     }
     
+    function orderItems(uint256 orderId) public view returns (uint256[]) {
+        var o = orders[orderId];
+        return o.items;
+    }
+    
+    function orderBuyers(uint256 orderId) public view returns (address[]) {
+        var o = orders[orderId];
+        return o.buyers;
+    }
+    
     function restaurantOrderStatus(uint256 orderId) public view returns (Restaurant.Status) {
         var o = orders[orderId];
         return o.restaurant.orderStatus(o.restaurantOrderId);
