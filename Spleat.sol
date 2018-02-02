@@ -28,6 +28,7 @@ contract Spleat {
         string phone;
         uint256[] items;
         address[] buyers;
+        uint256[] itemPayment;
         uint256 payed;
         bool ordered;
         uint256 restaurantOrderId;
@@ -35,11 +36,16 @@ contract Spleat {
     
     mapping (uint256 => Order) public orders;
     
+    function orderById(uint256 orderId) public view returns (uint256[], address[], bool) {
+        var o = orders[orderId];
+        return (o.items, o.buyers, o.ordered);
+    }
+    
     event OrderOpened(uint256 indexed orderId);
     
     function openOrder(Restaurant restaurant, string deliveryAddress, string phone) public returns (uint256) {
         var orderId = uint256(block.blockhash(block.number - 1)) ^ uint256(keccak256(restaurant, deliveryAddress, phone));
-        orders[orderId] = Order(msg.sender, restaurant, deliveryAddress, phone, new uint256[](0), new address[](0), 0, false, 0);
+        orders[orderId] = Order(msg.sender, restaurant, deliveryAddress, phone, new uint256[](0), new address[](0), new uint256[](0), 0, false, 0);
         OrderOpened(orderId);
         return orderId;
     }
@@ -50,6 +56,8 @@ contract Spleat {
         o.items[o.items.length - 1] = id;
         o.buyers.length++;
         o.buyers[o.buyers.length - 1] = msg.sender;
+        o.itemPayment.length++;
+        o.itemPayment[o.itemPayment.length - 1] = msg.value;
         o.payed += msg.value;
     }
     
@@ -59,11 +67,31 @@ contract Spleat {
     }
     
     function removeItem(uint256 orderId, uint256 id) public onlyBuyer(orderId, id) notOrdered(orderId) {
-        
+        var o = orders[orderId];
+        for (uint256 i = 0; i < o.items.length; i++) {
+            if (o.items[i] == id && o.buyers[i] == msg.sender) {
+                msg.sender.transfer(o.itemPayment[i]);
+                if (i != o.items.length - 1) {
+                    o.items[i] = o.items[o.items.length - 1];
+                    o.buyers[i] = o.buyers[o.buyers.length - 1];
+                }
+                o.items.length--;
+                o.buyers.length--;
+                break;
+            }
+        }
     }
     
     modifier onlyBuyer(uint256 orderId, uint256 id) {
-        
+        var o = orders[orderId];
+        var everythingGood = false;
+        for (uint256 i = 0; i < o.items.length; i++) {
+            if (o.items[i] == id && o.buyers[i] == msg.sender) {
+                everythingGood = true;
+                break;
+            }
+        }
+        require(everythingGood);
         _;
     }
     
