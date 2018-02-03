@@ -70,6 +70,7 @@ contract Spleat {
         var o = orders[orderId];
         for (uint256 i = 0; i < o.items.length; i++) {
             if (o.items[i] == id && o.buyers[i] == msg.sender) {
+                o.paid -= o.itemPayment[i];
                 msg.sender.transfer(o.itemPayment[i]);
                 if (i != o.items.length - 1) {
                     o.items[i] = o.items[o.items.length - 1];
