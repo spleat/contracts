@@ -29,7 +29,7 @@ contract Spleat {
         uint256[] items;
         address[] buyers;
         uint256[] itemPayment;
-        uint256 payed;
+        uint256 paid;
         bool ordered;
         uint256 restaurantOrderId;
     }
@@ -58,7 +58,7 @@ contract Spleat {
         o.buyers[o.buyers.length - 1] = msg.sender;
         o.itemPayment.length++;
         o.itemPayment[o.itemPayment.length - 1] = msg.value;
-        o.payed += msg.value;
+        o.paid += msg.value;
     }
     
     modifier checkPayment(uint256 orderId, uint256 id) {
@@ -99,7 +99,7 @@ contract Spleat {
     
     function makeOrder(uint256 orderId) public onlyOwner(orderId) notOrdered(orderId) {
         var o = orders[orderId];
-        var restaurantOrderId = o.restaurant.order.value(o.payed)(o.deliveryAddress, o.phone, o.items);
+        var restaurantOrderId = o.restaurant.order.value(o.paid)(o.deliveryAddress, o.phone, o.items);
         o.restaurantOrderId = restaurantOrderId;
         o.ordered = true;
     }
